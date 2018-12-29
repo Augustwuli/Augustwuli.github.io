@@ -259,6 +259,797 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://Augustwuli.cn/2018/12/29/18-12-25-1/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Augustwuli">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/header.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程序媛_小发">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/29/18-12-25-1/" itemprop="url">【译】继承 JavaScript 类中的静态属性</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-29T20:14:48+08:00">
+                2018-12-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/前端/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<ul>
+<li>原文地址：<a href="http://thecodebarbarian.com/static-properties-in-javascript-with-inheritance.html" target="_blank" rel="noopener">Static Properties in JavaScript Classes with Inheritance</a></li>
+<li>原文作者：<a href="http://www.twitter.com/code_barbarian" target="_blank" rel="noopener">Valeri Karpov</a></li>
+<li>译文出自：<a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a></li>
+<li>本文永久链接：<a href="https://github.com/xitu/gold-miner/blob/master/TODO1/static-properties-in-javascript-with-inheritance.md" target="_blank" rel="noopener">https://github.com/xitu/gold-miner/blob/master/TODO1/static-properties-in-javascript-with-inheritance.md</a></li>
+<li>译者：<a href="https://github.com/Augustwuli" target="_blank" rel="noopener">Augustwuli</a></li>
+<li>校对者：<a href="https://github.com/RicardoCao-Biker" target="_blank" rel="noopener">RicardoCao-Biker</a>, <a href="https://github.com/Mcskiller" target="_blank" rel="noopener">Mcskiller</a></li>
+</ul>
+</blockquote>
+<p>自 ES6 发布以来，JavaScript 对类和<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/static" target="_blank" rel="noopener">静态函数</a>的支持类似其他面向对象语言中的静态函数。不幸的是，JavaScript 缺乏对静态属性的支持，而且<a href="https://esdiscuss.org/topic/define-static-properties-and-prototype-properties-with-the-class-syntax" target="_blank" rel="noopener">谷歌上的推荐方案</a>没有考虑到继承问题。在<a href="https://github.com/Automattic/mongoose/issues/6912" target="_blank" rel="noopener">实现一个 Mongoose 特性</a>的时候，我陷入了一个需要更健壮的静态属性概念的困难。尤其是我需要通过设置 <code>prototype</code> 或者 <a href="https://medium.com/beginners-guide-to-mobile-web-development/super-and-extends-in-javascript-es6-understanding-the-tough-parts-6120372d3420" target="_blank" rel="noopener"><code>extends</code></a> 来支持继承静态属性。在本文，我将介绍在 ES6 中实现静态属性的模式。</p>
+<h2 id="静态方法和继承"><a href="#静态方法和继承" class="headerlink" title="静态方法和继承"></a>静态方法和继承</h2><p>假设你有一个带有静态方法的简单的符合 ES6 语法的类。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> foo() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">42</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>你可以使用 <code>extends</code> 创建一个子类并且能够继续使用 <code>foo()</code> 函数。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Sub</span> <span class="keyword">extends</span> <span class="title">Base</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">Sub.foo(); <span class="comment">// 42</span></span><br></pre></td></tr></table></figure>
+<p>你可以使用<a href="https://stackoverflow.com/questions/41426658/es6-how-to-access-a-static-getter-from-an-instance" target="_blank" rel="noopener">静态的 getter 和 setter</a> 在 <code>Base</code> 类中设置一个静态的属性。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> foo = <span class="number">42</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> get foo() &#123; <span class="keyword">return</span> foo; &#125;</span><br><span class="line">  <span class="keyword">static</span> set foo(v) &#123; foo = v; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>不幸的是，在继承 <code>Base</code> 的时候，这个模式就行不通了。如果你设置子类 <code>foo</code> 的值，它将会覆盖 <code>Base</code> 和所有其他的子类的 <code>foo</code>。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Sub</span> <span class="keyword">extends</span> <span class="title">Base</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub.foo);</span><br><span class="line"></span><br><span class="line">Sub.foo = <span class="number">43</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 打印 "43, 43"。在上面会覆盖 “Base.foo” 和 “Sub.foo” 的值</span></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub.foo);</span><br></pre></td></tr></table></figure>
+<p>如果属性是一个数组或者是对象这个问题会变得更糟。因为典型的继承，如果 <code>foo</code> 是一个数组，每一个子类都会有一个数组副本的引用，如下所示。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> get foo() &#123; <span class="keyword">return</span> <span class="keyword">this</span>._foo; &#125;</span><br><span class="line">  <span class="keyword">static</span> set foo(v) &#123; <span class="keyword">this</span>._foo = v; &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Base.foo = [];</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Sub</span> <span class="keyword">extends</span> <span class="title">Base</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub.foo);</span><br><span class="line"></span><br><span class="line">Sub.foo.push(<span class="string">'foo'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 现在这两个数组都包含 “foo”，因为它们都是同一个数组！</span></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub.foo);</span><br><span class="line"><span class="built_in">console</span>.log(Base.foo === Sub.foo); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+<p>所以 JavaScript 支持静态的 getter 和 setter，但是在数组和对象的情况下使用它们将会是搬起石头砸自己脚。事实证明，你可以在 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty" target="_blank" rel="noopener">JavaScript 内置的 <code>hasOwnProperty()</code></a> 函数的帮助实现它。</p>
+<h2 id="继承静态属性"><a href="#继承静态属性" class="headerlink" title="继承静态属性"></a>继承静态属性</h2><p>关键思想是 JavaScript 类只是另一个对象，所以你可以区分 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyNames" target="_blank" rel="noopener">本身的属性</a> 和继承的属性。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> get foo() &#123;</span><br><span class="line">    <span class="comment">// 如果 “_foo” 被继承了，或者不存在的时候将它当做 “undefined”</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.hasOwnProperty(<span class="string">'_foo'</span>) ? <span class="keyword">this</span>._foo : <span class="keyword">void</span> <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">static</span> set foo(v) &#123; <span class="keyword">this</span>._foo = v; &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Base.foo = [];</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Sub</span> <span class="keyword">extends</span> <span class="title">Base</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 打印 "[] undefined"</span></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub.foo);</span><br><span class="line"><span class="built_in">console</span>.log(Base.foo === Sub.foo); <span class="comment">// false</span></span><br><span class="line"></span><br><span class="line">Base.foo.push(<span class="string">'foo'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 打印 "['foo'] undefined"</span></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub.foo);</span><br><span class="line"><span class="built_in">console</span>.log(Base.foo === Sub.foo); <span class="comment">// false</span></span><br></pre></td></tr></table></figure>
+<p>这个模式在类中的实现是很简洁，它也可以被用于 ES6 之前的 JavaScript 标准的继承。这一点很重要，因为 Mongoose 仍然使用 ES6 风格之前的继承。事后看来，我们本应该尽早使用这个方法，这个特性是我们第一次看到使用 ES6 类和继承比只设置函数的 <code>prototype</code> 有明显优势。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Base</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">Object</span>.defineProperty(Base, <span class="string">'foo'</span>, &#123;</span><br><span class="line">  get: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123; <span class="keyword">return</span> <span class="keyword">this</span>.hasOwnProperty(<span class="string">'_foo'</span>) ? <span class="keyword">this</span>._foo : <span class="keyword">void</span> <span class="number">0</span>; &#125;,</span><br><span class="line">  set: <span class="function"><span class="keyword">function</span>(<span class="params">v</span>) </span>&#123; <span class="keyword">this</span>._foo = v; &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">Base.foo = [];</span><br><span class="line"></span><br><span class="line"><span class="comment">// ES6 之前版本的继承</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Sub1</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line">Sub1.prototype = <span class="built_in">Object</span>.create(Base.prototype);</span><br><span class="line"><span class="comment">// Static properties were annoying pre-ES6</span></span><br><span class="line"><span class="built_in">Object</span>.defineProperty(Sub1, <span class="string">'foo'</span>, <span class="built_in">Object</span>.getOwnPropertyDescriptor(Base, <span class="string">'foo'</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// ES6 的继承</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Sub2</span> <span class="keyword">extends</span> <span class="title">Base</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 打印 "[] undefined"</span></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub1.foo);</span><br><span class="line"><span class="comment">// 打印 "[] undefined"</span></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub2.foo);</span><br><span class="line"></span><br><span class="line">Base.foo.push(<span class="string">'foo'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 打印 "['foo'] undefined"</span></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub1.foo);</span><br><span class="line"><span class="comment">// 打印 "['foo'] undefined"</span></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub2.foo);</span><br></pre></td></tr></table></figure>
+<h2 id="继续前进"><a href="#继续前进" class="headerlink" title="继续前进"></a>继续前进</h2><p>ES6 类相对于老的 <code>Sub.prototype = Object.create(Base.prototype)</code> 有一个主要的优势，因为它 <code>extends</code> 了静态属性和函数的副本。使用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty" target="_blank" rel="noopener"><code>Object.hasOwnProperty()</code></a> 做一些额外的工作，就可以创建正确处理继承的静态 getter 和 setter。在 JavaScript 中使用静态属性要非常地小心：<code>extends</code> 在底层仍然使用典型的继承。这意味着，除非你使用本篇文章提到的 <code>hasOwnProperty()</code> 模式，否则静态的对象和数组在所有的子类中被共享。</p>
+<blockquote>
+<p>如果发现译文存在错误或其他需要改进的地方，欢迎到 <a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a> 对译文进行修改并 PR，也可获得相应奖励积分。文章开头的 <strong>本文永久链接</strong> 即为本文在 GitHub 上的 MarkDown 链接。</p>
+</blockquote>
+<hr>
+<blockquote>
+<p><a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a> 是一个翻译优质互联网技术文章的社区，文章来源为 <a href="https://juejin.im" target="_blank" rel="noopener">掘金</a> 上的英文分享文章。内容覆盖 <a href="https://github.com/xitu/gold-miner#android" target="_blank" rel="noopener">Android</a>、<a href="https://github.com/xitu/gold-miner#ios" target="_blank" rel="noopener">iOS</a>、<a href="https://github.com/xitu/gold-miner#前端" target="_blank" rel="noopener">前端</a>、<a href="https://github.com/xitu/gold-miner#后端" target="_blank" rel="noopener">后端</a>、<a href="https://github.com/xitu/gold-miner#区块链" target="_blank" rel="noopener">区块链</a>、<a href="https://github.com/xitu/gold-miner#产品" target="_blank" rel="noopener">产品</a>、<a href="https://github.com/xitu/gold-miner#设计" target="_blank" rel="noopener">设计</a>、<a href="https://github.com/xitu/gold-miner#人工智能" target="_blank" rel="noopener">人工智能</a>等领域，想要查看更多优质译文请持续关注 <a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a>、<a href="http://weibo.com/juejinfanyi" target="_blank" rel="noopener">官方微博</a>、<a href="https://zhuanlan.zhihu.com/juejinfanyi" target="_blank" rel="noopener">知乎专栏</a>。</p>
+</blockquote>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://Augustwuli.cn/2018/12/25/18-12-25-2/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Augustwuli">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/header.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程序媛_小发">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/25/18-12-25-2/" itemprop="url">【译】React 路由和 React 组件的爱恨情仇</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-25T20:14:56+08:00">
+                2018-12-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/前端/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<ul>
+<li>原文地址：<a href="https://blog.bitsrc.io/the-love-hate-relationship-between-react-router-and-react-components-dee4aac5956c" target="_blank" rel="noopener">The Love-Hate Relationship between React Router and React Components</a></li>
+<li>原文作者：<a href="https://blog.bitsrc.io/@KasraKhosravi?source=post_header_lockup" target="_blank" rel="noopener">Kasra</a></li>
+<li>译文出自：<a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a></li>
+<li>本文永久链接：<a href="https://github.com/xitu/gold-miner/blob/master/TODO1/the-love-hate-relationship-between-react-router-and-react-components.md" target="_blank" rel="noopener">https://github.com/xitu/gold-miner/blob/master/TODO1/the-love-hate-relationship-between-react-router-and-react-components.md</a></li>
+<li>译者：<a href="https://github.com/Augustwuli" target="_blank" rel="noopener">Augustwuli</a></li>
+<li>校对者：<a href="https://github.com/RicardoCao-Biker" target="_blank" rel="noopener">RicardoCao-Biker</a></li>
+</ul>
+</blockquote>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/25/167e52c49c973b74?w=800&amp;h=420&amp;f=png&amp;s=21857" alt=""></p>
+<p>来源：谷歌图片</p>
+<p>作为 React 开发者，我们大部分人享用着使用 React Router 为 React 应用的路由带来的便利。</p>
+<p>为什么我们 ❤️ React 路由：</p>
+<ul>
+<li>与 React 完美结合并且遵循相同的原则</li>
+<li>路由的导航方面非常容易理解</li>
+<li><a href="https://tylermcginnis.com/react-router-programmatically-navigate/" target="_blank" rel="noopener">组件组合、声明性 UI、状态管理</a> 并且它紧密地追随着 React 的工作流 <strong>（事件 =&gt; 状态变化 =&gt; 重新渲染）</strong></li>
+<li>可靠的 <a href="https://github.com/ReactTraining/react-router/blob/master/packages/react-router/docs/api/history.md" target="_blank" rel="noopener">浏览历史特征</a> 允许用户在追踪视图状态的同时在应用中导航。</li>
+</ul>
+<p>然而在使用 React 路由的时候，如果你的应用程序特定需求变得比你在 web 上的每个教程中看到的常规用法稍微复杂一些，你将面对一些困难。</p>
+<p>好消息是即使在那些场景下，React 路由仍然允许我们以一种干净的方式解决问题；但是解决方案可能并不像一眼能开出来那么明显。这儿有个我们在 <a href="http:www.fjong.co" target="_blank" rel="noopener">Fjong</a> 开发团队 👗 的案例，我们在路由路径改变查询参数并且期望一个组件被重新渲染，React Router 的表现却不是那么回事儿。</p>
+<p>在我们描述具体问题和我们如何解决这个问题之前，让我们聊聊 React 路由和 React 组件之间巨大关系的几个方面。</p>
+<h3 id="相爱关系"><a href="#相爱关系" class="headerlink" title="相爱关系"></a>相爱关系</h3><p>React 路由和 React 组件之间有很多的联系。这主要是因为它们都遵循上面提到的相同的事件循环 <strong>（事件 =&gt; 状态变化 =&gt; 重新渲染）</strong>。现在记住这个流程，我们将解决在应用程序中导航的一个常见问题；<strong>当路由更改的时候滚动到页面的顶部</strong>。</p>
+<p>假设你有一组名为 <strong>Home</strong>、<strong>About</strong> 和 <strong>Search</strong> 的组件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;Router history=&#123;History&#125;&gt;</span><br><span class="line">  &lt;Switch&gt;</span><br><span class="line">    &lt;Route exact path=&quot;/&quot; component=&#123;Home&#125;/&gt;</span><br><span class="line">    &lt;Route exact path=&quot;/about&quot; component=&#123;About&#125;/&gt;</span><br><span class="line">    &lt;Route exact path=&quot;/search&quot; component=&#123;Search&#125;/&gt;</span><br><span class="line">    &lt;Route exact component=&#123;NoMatch&#125;/&gt;</span><br><span class="line">  &lt;/Switch&gt;</span><br><span class="line">&lt;/Router&gt;</span><br></pre></td></tr></table></figure>
+<p>现在假设当你跳转至 <code>/search</code> 的时候，你需要滚动很多次才能在 Search 页面看到你想看到的项目。</p>
+<p>然后，你在地址栏输入跳转至 <code>/about</code> 的链接，然后突然看到了 About Us 页面的底部，而不是顶部，这可能很烦人。这有一些方法解决这个问题，但是 React 路由为你提供了所有必要的工具来正确地完成这个任务。让我们来看看实际情况。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">/* globals window */</span><br><span class="line"></span><br><span class="line">/* Global Dependencies */</span><br><span class="line">const React = require(&apos;react&apos;);</span><br><span class="line">const &#123; Component &#125; = require(&apos;react&apos;);</span><br><span class="line">const PropTypes = require(&apos;prop-types&apos;);</span><br><span class="line">const &#123; Route, withRouter &#125; = require(&apos;react-router-dom&apos;);</span><br><span class="line"></span><br><span class="line">class ScrollToTopRoute extends Component &#123;</span><br><span class="line"></span><br><span class="line">	componentDidUpdate(prevProps) &#123;</span><br><span class="line">		if (this.props.location.pathname !== prevProps.location.pathname) &#123;</span><br><span class="line">			window.scrollTo(0, 0);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	render() &#123;</span><br><span class="line">		const &#123; component: Component, ...rest &#125; = this.props;</span><br><span class="line">    </span><br><span class="line">		return &lt;Route &#123;...rest&#125; render=&#123;props =&gt; (&lt;Component &#123;...props&#125; /&gt;)&#125; /&gt;;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">ScrollToTopRoute.propTypes = &#123;</span><br><span class="line">	path: PropTypes.string,</span><br><span class="line">	location: PropTypes.shape(&#123;</span><br><span class="line">		pathname: PropTypes.string,</span><br><span class="line">	&#125;),</span><br><span class="line">	component: PropTypes.instanceOf(Component),</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">module.exports = withRouter(ScrollToTopRoute);</span><br><span class="line"></span><br><span class="line">// Usage in App.jsx</span><br><span class="line">&lt;Router history=&#123;History&#125;&gt;</span><br><span class="line">  &lt;Switch&gt;</span><br><span class="line">    &lt;ScrollToTopRoute exact path=&quot;/&quot; component=&#123;Home&#125;/&gt;</span><br><span class="line">    &lt;ScrollToTopRoute exact path=&quot;/about&quot; component=&#123;About&#125;/&gt;</span><br><span class="line">    &lt;ScrollToTopRoute exact path=&quot;/search&quot; component=&#123;Search&#125;/&gt;</span><br><span class="line">    &lt;ScrollToTopRoute exact component=&#123;NoMatch&#125;/&gt;</span><br><span class="line">  &lt;/Switch&gt;</span><br><span class="line">&lt;/Router&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="讨厌的关系"><a href="#讨厌的关系" class="headerlink" title="讨厌的关系"></a>讨厌的关系</h3><p>但是对于任何关系来说，事情并不是在每种情况下都进展顺利。这与 React 路由和 React 组件的情况相同。为了更好地理解这一点，我们来看看应用程序中的一个可能的场景。</p>
+<p>假设你要从 <code>/search</code> 至 <code>/about</code>，然后当你到达 About Us 页面时，页面显然会像你所期望的那样重新渲染。从 <code>/about</code> 导航到 <code>/search</code> 也是如此。</p>
+<p>现在假设从 <code>/search?tags=Dresses</code> 至 <code>/search?tags=Bags</code> 的时候，你的 <code>SearchPage</code> 将搜索查询参数附加到 URL 上，并且你希望重新渲染这些参数。在这，我们更改了 React 路由路径 <code>location.path = /search</code> 上的搜索查询，它被 React 路由识别为同一位置对象上的属性 <code>location.search = ?tags=Dresses or ?tags=Bags</code>。</p>
+<p>无论是 React 路由还是你的组件都没有意识到它们需要重新渲染页面，因为从技术上讲，我们还是在同一个页面。React 组件不允许在相同路径但是不同搜索查询间的路由跳转触发重新渲染。</p>
+<p>目前我们的路由和组件似乎有点脱节。好难过 :(</p>
+<p>所以，我们如何才能解决这个问题呢？其实他们每个人都有解决这个问题的方法。React 路由告诉我们 URL 中的搜索查询参数是否发生了变化而且更重要的是根据 React 正确的生命周期来做这件事。之后，组件将负责决定如何处理这些信息。</p>
+<p>在这个案例中，如果组件需要重新渲染（由一个叫 <code>RouteKey</code> 的 boolean 属性（prop）决定）它将向组件传递一个唯一的键，该键是 <code>location.pathname</code> 和 <code>location.search</code> 的组合（这传递了键的一般经验法则，键应该是唯一的、稳定的和可预测的）在这个场景中，每当路由被请求，组件都能接受一个新的键；而且即使你停留在同一个页面，它也会为你重新渲染，没有任何副作用。我们来看看它是如何在实际中放回作用的！</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">/* globals window */</span><br><span class="line"></span><br><span class="line">/** Global Dependencies */</span><br><span class="line">const React = require(&apos;react&apos;);</span><br><span class="line">const &#123; Component &#125; = require(&apos;react&apos;);</span><br><span class="line">const PropTypes = require(&apos;prop-types&apos;);</span><br><span class="line">const &#123; Route, withRouter &#125; = require(&apos;react-router-dom&apos;);</span><br><span class="line"></span><br><span class="line">class ScrollToTopRoute extends Component &#123;</span><br><span class="line"></span><br><span class="line">	componentDidUpdate(prevProps) &#123;</span><br><span class="line">		if (this.props.location.pathname !== prevProps.location.pathname) &#123;</span><br><span class="line">			window.scrollTo(0, 0);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	render() &#123;</span><br><span class="line">		const &#123; component: Component, RouteKey, location, ...rest &#125; = this.props;</span><br><span class="line"></span><br><span class="line">		/**</span><br><span class="line">		 * Sometimes we need to force a React Route to re-render when the</span><br><span class="line">		 * search params (query) in the url changes. React Router does not</span><br><span class="line">		 * do this automatically if you are on the same page when the query</span><br><span class="line">		 * changes. By passing the `RouteKey`ro the `ScrollToTopRoute` and</span><br><span class="line">		 * setting it to true, we are passing the combination of pathname and</span><br><span class="line">		 * search params as a unique key to the component and that is a enough</span><br><span class="line">		 * and clear trigger for the component to re-render without side effects</span><br><span class="line">		 */</span><br><span class="line">		const Key = RouteKey ? location.pathname + location.search : null;</span><br><span class="line"></span><br><span class="line">		return &lt;Route &#123;...rest&#125; render=&#123;props =&gt; (&lt;Component &#123;...props&#125; key=&#123;Key&#125; /&gt;)&#125; /&gt;;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">ScrollToTopRoute.propTypes = &#123;</span><br><span class="line">	path: PropTypes.string,</span><br><span class="line">	location: PropTypes.shape(&#123;</span><br><span class="line">		pathname: PropTypes.string,</span><br><span class="line">	&#125;),</span><br><span class="line">	component: PropTypes.instanceOf(Component),</span><br><span class="line">	RouteKey: PropTypes.boolean,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">module.exports = withRouter(ScrollToTopRoute);</span><br><span class="line"></span><br><span class="line">// Usage in App.jsx</span><br><span class="line">&lt;Router history=&#123;History&#125;&gt;</span><br><span class="line">  &lt;Switch&gt;</span><br><span class="line">    &lt;ScrollToTopRoute exact path=&quot;/&quot; component=&#123;Home&#125;/&gt;</span><br><span class="line">    &lt;ScrollToTopRoute exact path=&quot;/about&quot; component=&#123;About&#125;/&gt;</span><br><span class="line">    &lt;ScrollToTopRoute exact path=&quot;/search&quot; component=&#123;Search&#125; RouteKey=&#123;true&#125; /&gt;</span><br><span class="line">    &lt;ScrollToTopRoute exact component=&#123;NoMatch&#125;/&gt;</span><br><span class="line">  &lt;/Switch&gt;</span><br><span class="line">&lt;/Router&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>我们介绍了React 路由和组件完美结合的例子，以及它们稍微分离时的场景。但是重要的是要记住，在大部分情况下，React 路由遵循和 React 相同的原则和设计模式，花时间熟悉这些原则及其相关的执行上下文，对于在 React 路由中修复 bug 会有很大帮助。</p>
+<blockquote>
+<p>如果发现译文存在错误或其他需要改进的地方，欢迎到 <a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a> 对译文进行修改并 PR，也可获得相应奖励积分。文章开头的 <strong>本文永久链接</strong> 即为本文在 GitHub 上的 MarkDown 链接。</p>
+</blockquote>
+<hr>
+<blockquote>
+<p><a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a> 是一个翻译优质互联网技术文章的社区，文章来源为 <a href="https://juejin.im" target="_blank" rel="noopener">掘金</a> 上的英文分享文章。内容覆盖 <a href="https://github.com/xitu/gold-miner#android" target="_blank" rel="noopener">Android</a>、<a href="https://github.com/xitu/gold-miner#ios" target="_blank" rel="noopener">iOS</a>、<a href="https://github.com/xitu/gold-miner#前端" target="_blank" rel="noopener">前端</a>、<a href="https://github.com/xitu/gold-miner#后端" target="_blank" rel="noopener">后端</a>、<a href="https://github.com/xitu/gold-miner#区块链" target="_blank" rel="noopener">区块链</a>、<a href="https://github.com/xitu/gold-miner#产品" target="_blank" rel="noopener">产品</a>、<a href="https://github.com/xitu/gold-miner#设计" target="_blank" rel="noopener">设计</a>、<a href="https://github.com/xitu/gold-miner#人工智能" target="_blank" rel="noopener">人工智能</a>等领域，想要查看更多优质译文请持续关注 <a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a>、<a href="http://weibo.com/juejinfanyi" target="_blank" rel="noopener">官方微博</a>、<a href="https://zhuanlan.zhihu.com/juejinfanyi" target="_blank" rel="noopener">知乎专栏</a>。</p>
+</blockquote>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://Augustwuli.cn/2018/11/07/18-11-07/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Augustwuli">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/header.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程序媛_小发">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/11/07/18-11-07/" itemprop="url">【译】6 个最令人满意的和编程相关的工作（和参与这些工作的人们的类型）</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-07T20:05:46+08:00">
+                2018-11-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/其他/" itemprop="url" rel="index">
+                    <span itemprop="name">其他</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<ul>
+<li>原文地址：<a href="https://medium.freecodecamp.org/the-6-most-desirable-coding-jobs-and-the-types-of-people-drawn-to-each-aebac45fd7f7" target="_blank" rel="noopener">The 6 most desirable coding jobs (and the types of people drawn to each)</a></li>
+<li>原文作者：<a href="https://medium.freecodecamp.org/@davidventuri?source=post_header_lockup" target="_blank" rel="noopener">David Venturi</a></li>
+<li>译文出自：<a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a></li>
+<li>本文永久链接：<a href="https://github.com/xitu/gold-miner/blob/master/TODO1/the-6-most-desirable-coding-jobs-and-the-types-of-people-drawn-to-each.md" target="_blank" rel="noopener">https://github.com/xitu/gold-miner/blob/master/TODO1/the-6-most-desirable-coding-jobs-and-the-types-of-people-drawn-to-each.md</a></li>
+<li>译者：<a href="https://github.com/Augustwuli" target="_blank" rel="noopener">Augustwuli</a></li>
+<li>校对者：<a href="https://github.com/zhmhhu" target="_blank" rel="noopener">zhmhhu</a>, <a href="https://github.com/lihanxiang" target="_blank" rel="noopener">lihanxiang</a></li>
+</ul>
+</blockquote>
+<h2 id="Free-Code-Camp-曾邀请-15-000-人回答他们是谁和他们是如何学习编程的。我根据他们的工作偏好把他们进行归类，然后探究他们之间的不同之处。"><a href="#Free-Code-Camp-曾邀请-15-000-人回答他们是谁和他们是如何学习编程的。我根据他们的工作偏好把他们进行归类，然后探究他们之间的不同之处。" class="headerlink" title="Free Code Camp 曾邀请 15,000 人回答他们是谁和他们是如何学习编程的。我根据他们的工作偏好把他们进行归类，然后探究他们之间的不同之处。"></a>Free Code Camp 曾邀请 15,000 人回答他们是谁和他们是如何学习编程的。我根据他们的工作偏好把他们进行归类，然后探究他们之间的不同之处。</h2><p><img src="https://user-gold-cdn.xitu.io/2018/11/7/166ec8ccef3afe3f?w=2000&amp;h=533&amp;f=png&amp;s=158956" alt=""></p>
+<p>图片来源于 <a href="http://davidventuri.com/" target="_blank" rel="noopener"><strong>我的博客</strong></a>.</p>
+<p>超过 15,000 的人做了 <a href="https://medium.freecodecamp.com/we-asked-15-000-people-who-they-are-and-how-theyre-learning-to-code-4104e29b2781#.jlsxxy4si" target="_blank" rel="noopener">Free Code Camp’s 2016 New Coder Survey</a> 这个调查问卷。被授予研究这份问卷权利的人（<strong>正如我</strong>）正史无前例的了解人们是如何学习编程的。完整的调查数据已发布在了 <a href="https://www.kaggle.com/freecodecamp/2016-new-coder-survey-" target="_blank" rel="noopener">Kaggle</a>。</p>
+<p>6,503 的新编程人员回答了这个问题：“<strong>你最感兴趣这里面的哪一个角色？</strong>”</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/11/7/166ec8cd06560023?w=800&amp;h=535&amp;f=png&amp;s=64489" alt=""></p>
+<h3 id="6-个最受欢迎的和编程相关的工作和参与这些工作的人们的（不同）类型"><a href="#6-个最受欢迎的和编程相关的工作和参与这些工作的人们的（不同）类型" class="headerlink" title="6 个最受欢迎的和编程相关的工作和参与这些工作的人们的（不同）类型"></a>6 个最受欢迎的和编程相关的工作和参与这些工作的人们的（不同）类型</h3><p>这些工作分别是全栈开发者、前端开发者、后端开发者、数据科学家/工程师、移动开发者和用户体验设计师（UX）。对于每一类工作，我们将从这三个<strong>分类的</strong>变量来分析：</p>
+<ul>
+<li>性别</li>
+<li>地区</li>
+<li>学历</li>
+</ul>
+<p>…和 5 个<strong>数值</strong>：</p>
+<ul>
+<li>年龄</li>
+<li>编程经历</li>
+<li>每周学习时间</li>
+<li>目前的薪水</li>
+<li>期望的下一份薪水（在学习新的编程技术之后的第一份工作）</li>
+</ul>
+<p><strong>在<a href="https://github.com/FreeCodeCamp/2016-new-coder-survey/blob/master/survey-data-dictionary.md" target="_blank" rel="noopener">原始的调查</a>中，UX 设计师是默认选项 。</strong> 尽管学历对于编程相关工作的影响是<a href="http://uxmastery.com/how-much-code-should-a-user-experience-designer-write/" target="_blank" rel="noopener"><strong>有争议的</strong></a>，但是拥有编程基础是有帮助的。</p>
+<h3 id="性别"><a href="#性别" class="headerlink" title="性别"></a>性别</h3><p>UX 设计师是迄今为止在性别上呈现最为多样化的一类工作，其中拥有 52% 的男性工作者，46% 的女性工作者，也是在受访者中无性人、中性人和跨性别者占比最高的一类工作（占2%）。尽管全栈开发和后端开发中的男性占比和移动开发相近，移动开发仍然是男性占主导地位最多的一类工作，占81%。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/11/7/166ec8cd066db5cb?w=800&amp;h=550&amp;f=png&amp;s=57693" alt=""></p>
+<h3 id="地区"><a href="#地区" class="headerlink" title="地区"></a>地区</h3><p>移动开发者就地区方面来说是最为多元化的。从事 UX 设计的人大部分来自于北美。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/11/7/166ec8cd06e2fba4?w=800&amp;h=535&amp;f=png&amp;s=62504" alt=""></p>
+<p>Free Code Camp 立基于美国，它的调查的数据会更偏向于北美。</p>
+<h3 id="学历"><a href="#学历" class="headerlink" title="学历"></a>学历</h3><p>数据科学和数据工程最倾向招聘具有高等教育学历的人。从事移动开发工作的受访者中，无高中学历或者仅仅只有高中学历的占比最高，而后端开发者中这些人员的占比是仅次于移动开发者的。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/11/7/166ec8cd0718a591?w=1000&amp;h=491&amp;f=png&amp;s=85954" alt=""></p>
+<p>我想知道这些倾向是否也会在年龄的方面反映出来。</p>
+<h3 id="年龄"><a href="#年龄" class="headerlink" title="年龄"></a>年龄</h3><p>移动开发者实际上是最年轻的。他们的下四分位数比它下面一个最年轻的角色还要年轻两岁。这可能与手机是一门新兴产业有关。前端开发是年龄最大的工作，平均年龄是29岁。注意数据科学/数据工程是第二年轻的工作，而不是后端开发。 </p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/11/7/166ec8cd0a0e0434?w=800&amp;h=549&amp;f=png&amp;s=59466" alt=""></p>
+<p>顺便一提，这里介绍如何理解这张表（有篇文章中还介绍了<a href="http://www.physics.csbsju.edu/stats/box2.html" target="_blank" rel="noopener">箱型图</a>）：”x” 符号代表的是平均数。盒上的水平线指的是中位数（也被叫中四分位数）。这个盒子的底部指的是下四分位数，盒子的顶部指的是上四分位数。盒须的长度是这个盒子高度的1.5倍。这上面的圆表示的是异常值。为了更明显得看出这些异常值，y轴上的数值以对数的形式增长。</p>
+<h3 id="编程经历"><a href="#编程经历" class="headerlink" title="编程经历"></a>编程经历</h3><p>数据科学家、数据工程师和后端开发的编程训练时间最长，中位数为 8 个月。UX 设计师的下四分位数最低，仅仅只有两个月。编程经历的平均数呈正偏态分布，这本应该是大打折扣的，但却都靠近上四分位数。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/11/7/166ec8cdf8d255bc?w=800&amp;h=550&amp;f=png&amp;s=80936" alt=""></p>
+<h3 id="致力于学习的时间"><a href="#致力于学习的时间" class="headerlink" title="致力于学习的时间"></a>致力于学习的时间</h3><p>全栈开发者每周拿大部分的时间专注于学习，25% 的调查者每周花 30 多个小时去学习。UX 设计师每周花费最少的时间学习，平均每周学习 12 小时。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/11/7/166ec8ce02dbee29?w=800&amp;h=552&amp;f=png&amp;s=71096" alt=""></p>
+<p>相比之下，学习时间的数据在性别和地区方面的差别并不是很大。（我写过一个完整的<a href="https://medium.freecodecamp.com/new-coders-how-salary-and-time-spent-learning-vary-by-demographic-359ef1ed0da8" target="_blank" rel="noopener">分析</a>）</p>
+<ul>
+<li><a href="https://medium.freecodecamp.com/new-coders-how-salary-and-time-spent-learning-vary-by-demographic-359ef1ed0da8" target="_blank" rel="noopener"><strong>新的编程人员：学习的时间和薪水如何在不同的人上显示不同的差异</strong>：我在地区和性别方面上分析了参与 Free Code Camp’s New Coder Survey 调查的人</a></li>
+</ul>
+<h3 id="现在的薪水"><a href="#现在的薪水" class="headerlink" title="现在的薪水"></a>现在的薪水</h3><p>胸怀抱负的数据科学家和数据工程师很明显是现在薪水最高的。上四分位数的值为每个月 60k 美元，比第二名多出了 8k 美元 。其余以兴趣为主的工作岗位之间的收入差距不大，尽管都高于2014年美国 28.9 万美元的中值收入。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/11/7/166ec8cdf5f4e5d7?w=800&amp;h=551&amp;f=png&amp;s=67194" alt=""></p>
+<h3 id="期望的下一份薪水"><a href="#期望的下一份薪水" class="headerlink" title="期望的下一份薪水"></a>期望的下一份薪水</h3><p>那些对数据科学和数据工程感兴趣的人希望在他们的下一份工作中挣取最多的工资，中值期望的薪水是 60 k 美元。前端开发者是最不乐观的工作岗位（是的，这种差异在统计平均值上是很明显的）。请注意全部岗位期望的薪水会比现在的薪水更高。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/11/7/166ec8ce0c271e15?w=800&amp;h=551&amp;f=png&amp;s=73661" alt=""></p>
+<h3 id="雷达图"><a href="#雷达图" class="headerlink" title="雷达图"></a>雷达图</h3><p>让我们用一张雷达图来比较所有数值变量。每个数值变量的平均数，标度（或归一化）在 0 和 1 之间，并把它绘制在径向轴：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/11/7/166ec8ce334c097c?w=800&amp;h=769&amp;f=png&amp;s=194836" alt=""></p>
+<p>结果马上就出现了：数据科学家/工程师在编程经历、当前薪水和预期下一份薪水方面领先。</p>
+<p>前端和移动开发所拥有的面积最小，这要归功于前者的最低编程经历和预期的下一份薪水的平均值，以及后者的低年龄和当前薪水的平均值。</p>
+<p>注意，我们严格使用这个图来有效地通过多个数值变量比较工作岗位，而不是说哪个工作岗位更好。基于总体面积的大小判断是雷达图的一种常见的误判。</p>
+<hr>
+<h3 id="我们可以从中学到什么？"><a href="#我们可以从中学到什么？" class="headerlink" title="我们可以从中学到什么？"></a>我们可以从中学到什么？</h3><p>非常多！每种类型的程序员都有一套独一无二的特征。</p>
+<p>相对而言，女性对用户体验设计更感兴趣。亚洲、南美和非洲对移动开发更感兴趣。数据科学/工程和移动开发分别是在教育方面经验最多和最不足的。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/11/7/166ec8ce37f6da5a?w=800&amp;h=565&amp;f=jpeg&amp;s=114264" alt=""></p>
+<p>图片来自 <a href="https://dribbble.com/shots/727430-Clyp-Calender-iPhone-iPad?list=users" target="_blank" rel="noopener">Riccardo Carlet</a></p>
+<p>胸怀抱负的数据科学家/工程师当前薪水是最高的，期望的下一份薪水也是最高的并拥有最多的编程经历。前端开发者年龄是最大的，但是影响不大。全栈开发者致力于每周将自己的大部分时间花费在学习上。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/11/7/166ec8ce97bace9f?w=600&amp;h=243&amp;f=png&amp;s=76254" alt=""></p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/11/7/166ec8cea91bbffa?w=600&amp;h=248&amp;f=png&amp;s=77566" alt=""></p>
+<p>绘图来自 <a href="https://www.datacamp.com/community/tutorials/data-science-industry-infographic#gs.1VaXGTE" target="_blank" rel="noopener">DataCamp</a></p>
+<p>前端开发者的经验和期望的下一份薪水是最少的。UX 设计师每周花在学习上的时间和目前薪水都是最少的，但是后者并不是很明显。移动开发是最年轻的。</p>
+<h3 id="接下来是什么？"><a href="#接下来是什么？" class="headerlink" title="接下来是什么？"></a>接下来是什么？</h3><p>你可以在 Kaggle 上找到<a href="https://www.kaggle.com/venturidb/d/freecodecamp/2016-new-coder-survey-/new-coders-a-deeper-dive" target="_blank" rel="noopener">更详细的分析版本</a>，在这篇文章中你可以找到支持本文推理的统计测验。 </p>
+<blockquote>
+<p>如果发现译文存在错误或其他需要改进的地方，欢迎到 <a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a> 对译文进行修改并 PR，也可获得相应奖励积分。文章开头的 <strong>本文永久链接</strong> 即为本文在 GitHub 上的 MarkDown 链接。</p>
+</blockquote>
+<hr>
+<blockquote>
+<p><a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a> 是一个翻译优质互联网技术文章的社区，文章来源为 <a href="https://juejin.im" target="_blank" rel="noopener">掘金</a> 上的英文分享文章。内容覆盖 <a href="https://github.com/xitu/gold-miner#android" target="_blank" rel="noopener">Android</a>、<a href="https://github.com/xitu/gold-miner#ios" target="_blank" rel="noopener">iOS</a>、<a href="https://github.com/xitu/gold-miner#前端" target="_blank" rel="noopener">前端</a>、<a href="https://github.com/xitu/gold-miner#后端" target="_blank" rel="noopener">后端</a>、<a href="https://github.com/xitu/gold-miner#区块链" target="_blank" rel="noopener">区块链</a>、<a href="https://github.com/xitu/gold-miner#产品" target="_blank" rel="noopener">产品</a>、<a href="https://github.com/xitu/gold-miner#设计" target="_blank" rel="noopener">设计</a>、<a href="https://github.com/xitu/gold-miner#人工智能" target="_blank" rel="noopener">人工智能</a>等领域，想要查看更多优质译文请持续关注 <a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a>、<a href="http://weibo.com/juejinfanyi" target="_blank" rel="noopener">官方微博</a>、<a href="https://zhuanlan.zhihu.com/juejinfanyi" target="_blank" rel="noopener">知乎专栏</a>。</p>
+</blockquote>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://Augustwuli.cn/2018/11/04/18-11-04/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Augustwuli">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/header.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程序媛_小发">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/11/04/18-11-04/" itemprop="url">浅谈var、let和const区别</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-04T21:19:38+08:00">
+                2018-11-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/前端/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>前言：随着2015年6月 ECMAScript 6.0 发布以来，有几个新的变量声明方式进入前端开发者的视线，即 let、const、import 和 class 命令，而这些新的声明方式之中有两个容易和 var 混淆，那就是 let 和 const。那这两个新的声明方式和我们之前使用的 var 声明方式有什么不同呢，那么是什么原因导致 ES6 推崇新的声明方式摒弃传统的声明方式呢，让我们通过这篇文章一探究竟。</p>
+</blockquote>
+<h2 id="简单介绍："><a href="#简单介绍：" class="headerlink" title="简单介绍："></a>简单介绍：</h2><p><code>let</code> 的用法类似于 <code>var</code>，但是 <code>let</code> 只在所在的代码块内有效，所以我们一般使用 <code>let</code> 替代 <code>var</code>。而 <code>const</code> 用来声明常量。<br>​<br>让我们先看一看这张表：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">声明方式</th>
+<th style="text-align:center">变量提升</th>
+<th style="text-align:center">暂时性死区</th>
+<th style="text-align:center">重复声明</th>
+<th style="text-align:center">初始值</th>
+<th style="text-align:center">作用域</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">var</td>
+<td style="text-align:center">允许</td>
+<td style="text-align:center">不存在</td>
+<td style="text-align:center">允许</td>
+<td style="text-align:center">不需要</td>
+<td style="text-align:center">除块级</td>
+</tr>
+<tr>
+<td style="text-align:center">let</td>
+<td style="text-align:center">不允许</td>
+<td style="text-align:center">存在</td>
+<td style="text-align:center">不允许</td>
+<td style="text-align:center">不需要</td>
+<td style="text-align:center">块级</td>
+</tr>
+<tr>
+<td style="text-align:center">const</td>
+<td style="text-align:center">不允许</td>
+<td style="text-align:center">存在</td>
+<td style="text-align:center">不允许</td>
+<td style="text-align:center">需要</td>
+<td style="text-align:center">块级</td>
+</tr>
+</tbody>
+</table>
+<p>接下来我们根据这几个方面来介绍 var、let和const的区别：变量提升、暂时性死区、重复声明、初始值和作用域。</p>
+<h3 id="一、变量提升"><a href="#一、变量提升" class="headerlink" title="一、变量提升"></a>一、变量提升</h3><p>概述：变量可在声明之前使用。</p>
+<p>首先看这三段代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(a);<span class="comment">//正常运行，控制台输出 undefined</span></span><br><span class="line"><span class="keyword">var</span> a = <span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(b);<span class="comment">//报错，Uncaught ReferenceError: b is not defined</span></span><br><span class="line"><span class="keyword">let</span> b = <span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(c);<span class="comment">//报错，Uncaught ReferenceError: c is not defined</span></span><br><span class="line"><span class="keyword">const</span> c = <span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+<p><code>var</code> 命令经常会发生<strong>变量提升</strong>现象，按照一般逻辑，变量应该在声明之后使用才对。为了纠正这个现象，ES6 规定 <code>let</code> 和 <code>const</code> 命令<strong>不发生变量提升</strong>，使用 <code>let</code> 和 <code>const</code> 命令声明变量之前，该变量是不可用的。主要是为了减少运行时错误，防止变量声明前就使用这个变量，从而导致意料之外的行为。</p>
+<h3 id="二、暂时性死区"><a href="#二、暂时性死区" class="headerlink" title="二、暂时性死区"></a>二、暂时性死区</h3><p>概述：如果在代码块中存在 <code>let</code> 或 <code>const</code> 命令，这个区块对这些命令声明的变量，从一开始就形成了封闭作用域。凡是在声明之前就使用这些变量，就会报错。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> tmp = <span class="number">123</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">	tmp = <span class="string">'abc'</span>;<span class="comment">//报错，Uncaught ReferenceError: tmp is not defined</span></span><br><span class="line">	<span class="keyword">let</span> tmp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这段代码的原意是在 if 内定义外部的 <code>tmp</code> 为 ‘abc’。 </p>
+<p>但现实是，存在全局变量 <code>tmp</code>，但是块级作用域内 <code>let</code> 又声明了一个 <code>tmp</code>变量，导致后者被绑定在这个块级作用域中，所以在 <code>let</code> 声明变量前，对 <code>tmp</code> 赋值就报错了。</p>
+<h3 id="三、重复声明"><a href="#三、重复声明" class="headerlink" title="三、重复声明"></a>三、重复声明</h3><p>概述：指在相同作用域内，重复声明同一个变量。</p>
+<p><code>let</code> 和 <code>const</code> 命令声明的变量不允许重复声明：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">func</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">  <span class="keyword">let</span> a = <span class="number">10</span>;</span><br><span class="line">  <span class="keyword">const</span> PI = <span class="number">3.1415</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">var</span> a = <span class="number">1</span>;<span class="comment">// 报错，Uncaught SyntaxError: Identifier 'a' has already been declared</span></span><br><span class="line">  <span class="keyword">var</span> PI = <span class="number">3</span>;<span class="comment">// 报错，Uncaught SyntaxError: Identifier 'PI' has already been declared</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 当调用func()时报错，Uncaught SyntaxError: Identifier 'a' has already been declared</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">func</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">  <span class="keyword">let</span> a = <span class="number">10</span>;</span><br><span class="line">  <span class="keyword">const</span> PI = <span class="number">3.1415</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">let</span> a = <span class="number">1</span>;<span class="comment">// 报错，Uncaught SyntaxError: Identifier 'a' has already been declared</span></span><br><span class="line">  <span class="keyword">const</span> PI = <span class="number">3</span>;<span class="comment">// 报错，Uncaught SyntaxError: Identifier 'PI' has already been declared</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> <code>var</code> 是允许重复定义的，而这又会给我们带来什么麻烦呢？</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> i = <span class="number">10</span>;</span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">var</span> i = <span class="number">0</span>;i &lt; <span class="number">5</span>;i++)&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(i);</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.log(i);<span class="comment">// 输出 5</span></span><br></pre></td></tr></table></figure>
+<p>对于学习过静态（类型）语言的人知道，这段代码要是替换成 c 语言或其他静态语言，输出的结果应该是 10。然而对于 javascript 来说，这段代码的输出结果是 5。因为 <code>var</code> 命令没有块级作用域，所以 for 循环括号内的变量 <code>i</code> 会覆盖外层 <code>i</code>，而且 <code>var</code> 允许重复声明，所以这段代码中 <code>i</code> 被声明了两次,<code>i</code> 的最终结果就被 for 循环的 i 给覆盖了。</p>
+<h3 id="四、初始值"><a href="#四、初始值" class="headerlink" title="四、初始值"></a>四、初始值</h3><p>由于 <code>const</code> 声明的是只读的常量，一旦声明，就必须立即初始化，声明之后值不能改变。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">const PI = 3.1415;</span><br><span class="line">PI = 3;// 报错，Uncaught TypeError: Assignment to constant variable.</span><br></pre></td></tr></table></figure>
+<h3 id="五、作用域"><a href="#五、作用域" class="headerlink" title="五、作用域"></a>五、作用域</h3><p>在 ES5 中只有全局作用域和函数作用域，没有块级作用域，这带来很多不合理的场景。</p>
+<p>第一种场景，内层变量可能会覆盖外层变量。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> tmp = <span class="keyword">new</span> <span class="built_in">Date</span>();<span class="comment">//处于全局作用域</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">f</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(tmp);<span class="comment">//处于函数作用域</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="literal">false</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> tmp = <span class="string">'hello world'</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">f(); <span class="comment">// undefined</span></span><br></pre></td></tr></table></figure>
+<p>上面代码的原意是，<code>if</code>代码块的外部使用外层的<code>tmp</code>变量，内部使用内层的<code>tmp</code>变量。</p>
+<p>然而现实是在这段代码中，function 内部的2个 <code>tmp</code> 变量处在同一函数作用域，由于变量提升，导致函数作用域中的 <code>tmp</code> 覆盖全局作用域中的 <code>tmp</code>，所以，f()输出结果为undefined。</p>
+<p>第二种场景，用来计数的循环变量泄露为全局变量（前面在重复声明中提到的）：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> i = <span class="number">10</span>;</span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">var</span> i = <span class="number">0</span>;i &lt; <span class="number">5</span>;i++)&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(i);</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.log(i);<span class="comment">// 输出 5</span></span><br></pre></td></tr></table></figure>
+<p>上面代码中，变量<code>i</code>只用来控制循环，但是循环结束后，它并没有消失，泄露成了全局变量。</p>
+<blockquote>
+<p>本文内容以阮一峰的<a href="http://es6.ruanyifeng.com/" target="_blank" rel="noopener">《ECMAScript 6 入门》</a>为基础进行总结，欢迎各位提出文章内容中有错误和疑惑的地方~</p>
+</blockquote>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://Augustwuli.cn/2018/10/30/18-10-30/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -300,6 +1091,28 @@
             
           </span>
 
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/前端/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -505,14 +1318,32 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-count">5</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
             
 
             
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
 
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
             
 
           </nav>

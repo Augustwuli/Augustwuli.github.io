@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="JS,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="原文地址：Static Properties in JavaScript Classes with Inheritance 原文作者：Valeri Karpov 译文出自：掘金翻译计划 本文永久链接：https://github.com/xitu/gold-miner/blob/master/TODO1/static-properties-in-javascript-with-inherita">
+<meta name="keywords" content="JS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【译】继承 JavaScript 类中的静态属性">
+<meta property="og:url" content="http://Augustwuli.cn/2018/12/29/18-12-25-1/index.html">
+<meta property="og:site_name" content="程序媛_小发">
+<meta property="og:description" content="原文地址：Static Properties in JavaScript Classes with Inheritance 原文作者：Valeri Karpov 译文出自：掘金翻译计划 本文永久链接：https://github.com/xitu/gold-miner/blob/master/TODO1/static-properties-in-javascript-with-inherita">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-12-29T12:15:57.072Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【译】继承 JavaScript 类中的静态属性">
+<meta name="twitter:description" content="原文地址：Static Properties in JavaScript Classes with Inheritance 原文作者：Valeri Karpov 译文出自：掘金翻译计划 本文永久链接：https://github.com/xitu/gold-miner/blob/master/TODO1/static-properties-in-javascript-with-inherita">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://Augustwuli.cn/2018/12/29/18-12-25-1/">
+
+
+
+
+
+  <title>【译】继承 JavaScript 类中的静态属性 | 程序媛_小发</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">程序媛_小发</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Augustwuli's blog</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://Augustwuli.cn/2018/12/29/18-12-25-1/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Augustwuli">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/header.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程序媛_小发">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【译】继承 JavaScript 类中的静态属性</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-29T20:14:48+08:00">
+                2018-12-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/前端/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<ul>
+<li>原文地址：<a href="http://thecodebarbarian.com/static-properties-in-javascript-with-inheritance.html" target="_blank" rel="noopener">Static Properties in JavaScript Classes with Inheritance</a></li>
+<li>原文作者：<a href="http://www.twitter.com/code_barbarian" target="_blank" rel="noopener">Valeri Karpov</a></li>
+<li>译文出自：<a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a></li>
+<li>本文永久链接：<a href="https://github.com/xitu/gold-miner/blob/master/TODO1/static-properties-in-javascript-with-inheritance.md" target="_blank" rel="noopener">https://github.com/xitu/gold-miner/blob/master/TODO1/static-properties-in-javascript-with-inheritance.md</a></li>
+<li>译者：<a href="https://github.com/Augustwuli" target="_blank" rel="noopener">Augustwuli</a></li>
+<li>校对者：<a href="https://github.com/RicardoCao-Biker" target="_blank" rel="noopener">RicardoCao-Biker</a>, <a href="https://github.com/Mcskiller" target="_blank" rel="noopener">Mcskiller</a></li>
+</ul>
+</blockquote>
+<p>自 ES6 发布以来，JavaScript 对类和<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/static" target="_blank" rel="noopener">静态函数</a>的支持类似其他面向对象语言中的静态函数。不幸的是，JavaScript 缺乏对静态属性的支持，而且<a href="https://esdiscuss.org/topic/define-static-properties-and-prototype-properties-with-the-class-syntax" target="_blank" rel="noopener">谷歌上的推荐方案</a>没有考虑到继承问题。在<a href="https://github.com/Automattic/mongoose/issues/6912" target="_blank" rel="noopener">实现一个 Mongoose 特性</a>的时候，我陷入了一个需要更健壮的静态属性概念的困难。尤其是我需要通过设置 <code>prototype</code> 或者 <a href="https://medium.com/beginners-guide-to-mobile-web-development/super-and-extends-in-javascript-es6-understanding-the-tough-parts-6120372d3420" target="_blank" rel="noopener"><code>extends</code></a> 来支持继承静态属性。在本文，我将介绍在 ES6 中实现静态属性的模式。</p>
+<h2 id="静态方法和继承"><a href="#静态方法和继承" class="headerlink" title="静态方法和继承"></a>静态方法和继承</h2><p>假设你有一个带有静态方法的简单的符合 ES6 语法的类。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> foo() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">42</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>你可以使用 <code>extends</code> 创建一个子类并且能够继续使用 <code>foo()</code> 函数。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Sub</span> <span class="keyword">extends</span> <span class="title">Base</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">Sub.foo(); <span class="comment">// 42</span></span><br></pre></td></tr></table></figure>
+<p>你可以使用<a href="https://stackoverflow.com/questions/41426658/es6-how-to-access-a-static-getter-from-an-instance" target="_blank" rel="noopener">静态的 getter 和 setter</a> 在 <code>Base</code> 类中设置一个静态的属性。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> foo = <span class="number">42</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> get foo() &#123; <span class="keyword">return</span> foo; &#125;</span><br><span class="line">  <span class="keyword">static</span> set foo(v) &#123; foo = v; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>不幸的是，在继承 <code>Base</code> 的时候，这个模式就行不通了。如果你设置子类 <code>foo</code> 的值，它将会覆盖 <code>Base</code> 和所有其他的子类的 <code>foo</code>。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Sub</span> <span class="keyword">extends</span> <span class="title">Base</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub.foo);</span><br><span class="line"></span><br><span class="line">Sub.foo = <span class="number">43</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 打印 "43, 43"。在上面会覆盖 “Base.foo” 和 “Sub.foo” 的值</span></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub.foo);</span><br></pre></td></tr></table></figure>
+<p>如果属性是一个数组或者是对象这个问题会变得更糟。因为典型的继承，如果 <code>foo</code> 是一个数组，每一个子类都会有一个数组副本的引用，如下所示。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> get foo() &#123; <span class="keyword">return</span> <span class="keyword">this</span>._foo; &#125;</span><br><span class="line">  <span class="keyword">static</span> set foo(v) &#123; <span class="keyword">this</span>._foo = v; &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Base.foo = [];</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Sub</span> <span class="keyword">extends</span> <span class="title">Base</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub.foo);</span><br><span class="line"></span><br><span class="line">Sub.foo.push(<span class="string">'foo'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 现在这两个数组都包含 “foo”，因为它们都是同一个数组！</span></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub.foo);</span><br><span class="line"><span class="built_in">console</span>.log(Base.foo === Sub.foo); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+<p>所以 JavaScript 支持静态的 getter 和 setter，但是在数组和对象的情况下使用它们将会是搬起石头砸自己脚。事实证明，你可以在 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty" target="_blank" rel="noopener">JavaScript 内置的 <code>hasOwnProperty()</code></a> 函数的帮助实现它。</p>
+<h2 id="继承静态属性"><a href="#继承静态属性" class="headerlink" title="继承静态属性"></a>继承静态属性</h2><p>关键思想是 JavaScript 类只是另一个对象，所以你可以区分 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyNames" target="_blank" rel="noopener">本身的属性</a> 和继承的属性。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> get foo() &#123;</span><br><span class="line">    <span class="comment">// 如果 “_foo” 被继承了，或者不存在的时候将它当做 “undefined”</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.hasOwnProperty(<span class="string">'_foo'</span>) ? <span class="keyword">this</span>._foo : <span class="keyword">void</span> <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">static</span> set foo(v) &#123; <span class="keyword">this</span>._foo = v; &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Base.foo = [];</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Sub</span> <span class="keyword">extends</span> <span class="title">Base</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 打印 "[] undefined"</span></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub.foo);</span><br><span class="line"><span class="built_in">console</span>.log(Base.foo === Sub.foo); <span class="comment">// false</span></span><br><span class="line"></span><br><span class="line">Base.foo.push(<span class="string">'foo'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 打印 "['foo'] undefined"</span></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub.foo);</span><br><span class="line"><span class="built_in">console</span>.log(Base.foo === Sub.foo); <span class="comment">// false</span></span><br></pre></td></tr></table></figure>
+<p>这个模式在类中的实现是很简洁，它也可以被用于 ES6 之前的 JavaScript 标准的继承。这一点很重要，因为 Mongoose 仍然使用 ES6 风格之前的继承。事后看来，我们本应该尽早使用这个方法，这个特性是我们第一次看到使用 ES6 类和继承比只设置函数的 <code>prototype</code> 有明显优势。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Base</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">Object</span>.defineProperty(Base, <span class="string">'foo'</span>, &#123;</span><br><span class="line">  get: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123; <span class="keyword">return</span> <span class="keyword">this</span>.hasOwnProperty(<span class="string">'_foo'</span>) ? <span class="keyword">this</span>._foo : <span class="keyword">void</span> <span class="number">0</span>; &#125;,</span><br><span class="line">  set: <span class="function"><span class="keyword">function</span>(<span class="params">v</span>) </span>&#123; <span class="keyword">this</span>._foo = v; &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">Base.foo = [];</span><br><span class="line"></span><br><span class="line"><span class="comment">// ES6 之前版本的继承</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Sub1</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line">Sub1.prototype = <span class="built_in">Object</span>.create(Base.prototype);</span><br><span class="line"><span class="comment">// Static properties were annoying pre-ES6</span></span><br><span class="line"><span class="built_in">Object</span>.defineProperty(Sub1, <span class="string">'foo'</span>, <span class="built_in">Object</span>.getOwnPropertyDescriptor(Base, <span class="string">'foo'</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// ES6 的继承</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Sub2</span> <span class="keyword">extends</span> <span class="title">Base</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 打印 "[] undefined"</span></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub1.foo);</span><br><span class="line"><span class="comment">// 打印 "[] undefined"</span></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub2.foo);</span><br><span class="line"></span><br><span class="line">Base.foo.push(<span class="string">'foo'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 打印 "['foo'] undefined"</span></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub1.foo);</span><br><span class="line"><span class="comment">// 打印 "['foo'] undefined"</span></span><br><span class="line"><span class="built_in">console</span>.log(Base.foo, Sub2.foo);</span><br></pre></td></tr></table></figure>
+<h2 id="继续前进"><a href="#继续前进" class="headerlink" title="继续前进"></a>继续前进</h2><p>ES6 类相对于老的 <code>Sub.prototype = Object.create(Base.prototype)</code> 有一个主要的优势，因为它 <code>extends</code> 了静态属性和函数的副本。使用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty" target="_blank" rel="noopener"><code>Object.hasOwnProperty()</code></a> 做一些额外的工作，就可以创建正确处理继承的静态 getter 和 setter。在 JavaScript 中使用静态属性要非常地小心：<code>extends</code> 在底层仍然使用典型的继承。这意味着，除非你使用本篇文章提到的 <code>hasOwnProperty()</code> 模式，否则静态的对象和数组在所有的子类中被共享。</p>
+<blockquote>
+<p>如果发现译文存在错误或其他需要改进的地方，欢迎到 <a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a> 对译文进行修改并 PR，也可获得相应奖励积分。文章开头的 <strong>本文永久链接</strong> 即为本文在 GitHub 上的 MarkDown 链接。</p>
+</blockquote>
+<hr>
+<blockquote>
+<p><a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a> 是一个翻译优质互联网技术文章的社区，文章来源为 <a href="https://juejin.im" target="_blank" rel="noopener">掘金</a> 上的英文分享文章。内容覆盖 <a href="https://github.com/xitu/gold-miner#android" target="_blank" rel="noopener">Android</a>、<a href="https://github.com/xitu/gold-miner#ios" target="_blank" rel="noopener">iOS</a>、<a href="https://github.com/xitu/gold-miner#前端" target="_blank" rel="noopener">前端</a>、<a href="https://github.com/xitu/gold-miner#后端" target="_blank" rel="noopener">后端</a>、<a href="https://github.com/xitu/gold-miner#区块链" target="_blank" rel="noopener">区块链</a>、<a href="https://github.com/xitu/gold-miner#产品" target="_blank" rel="noopener">产品</a>、<a href="https://github.com/xitu/gold-miner#设计" target="_blank" rel="noopener">设计</a>、<a href="https://github.com/xitu/gold-miner#人工智能" target="_blank" rel="noopener">人工智能</a>等领域，想要查看更多优质译文请持续关注 <a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a>、<a href="http://weibo.com/juejinfanyi" target="_blank" rel="noopener">官方微博</a>、<a href="https://zhuanlan.zhihu.com/juejinfanyi" target="_blank" rel="noopener">知乎专栏</a>。</p>
+</blockquote>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/JS/" rel="tag"># JS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/25/18-12-25-2/" rel="next" title="【译】React 路由和 React 组件的爱恨情仇">
+                <i class="fa fa-chevron-left"></i> 【译】React 路由和 React 组件的爱恨情仇
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/uploads/header.jpg" alt="Augustwuli">
+            
+              <p class="site-author-name" itemprop="name">Augustwuli</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/Augustwuli" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:wxh_leo@foxmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#静态方法和继承"><span class="nav-number">1.</span> <span class="nav-text">静态方法和继承</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#继承静态属性"><span class="nav-number">2.</span> <span class="nav-text">继承静态属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#继续前进"><span class="nav-number">3.</span> <span class="nav-text">继续前进</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Augustwuli</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
