@@ -79,13 +79,29 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="程序媛_小发">
-<meta property="og:url" content="http://Augustwuli.cn/index.html">
+<meta name="description" content="原文地址：How to stop using console.log() and start using your browser’s debugger 原文作者：Parag Zaveri 译文出自：掘金翻译计划 本文永久链接：https://github.com/xitu/gold-miner/blob/master/TODO1/stopping-using-console-log-and-">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【译】使用浏览器调试代码">
+<meta property="og:url" content="http://Augustwuli.cn/2018/10/30/18-10-30/index.html">
 <meta property="og:site_name" content="程序媛_小发">
+<meta property="og:description" content="原文地址：How to stop using console.log() and start using your browser’s debugger 原文作者：Parag Zaveri 译文出自：掘金翻译计划 本文永久链接：https://github.com/xitu/gold-miner/blob/master/TODO1/stopping-using-console-log-and-">
 <meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/10/30/166c2fc22317f8eb?w=416&h=638&f=png&s=22001">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/10/30/166c2fc223277f37?w=800&h=890&f=png&s=250896">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/10/30/166c2fc2239846ec?w=664&h=430&f=png&s=63737">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/10/23/1669f99fc52870b3?w=26&h=30&f=png&s=273">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/10/23/1669fa12e93c1ed9?w=29&h=28&f=png&s=495">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/10/30/166c2fc222f5abf9?w=678&h=938&f=png&s=211645">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/10/30/166c2fc222e5406e?w=800&h=680&f=png&s=252368">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/10/30/166c2fc223ad20ed?w=800&h=872&f=png&s=328015">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/10/30/166c2fc2d9450b36?w=800&h=833&f=png&s=326354">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/10/30/166c2fc2e296498f?w=800&h=384&f=png&s=93074">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/10/30/166c2fc2e9f4a446?w=800&h=850&f=png&s=50811">
+<meta property="og:updated_time" content="2018-12-29T05:25:02.349Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="程序媛_小发">
+<meta name="twitter:title" content="【译】使用浏览器调试代码">
+<meta name="twitter:description" content="原文地址：How to stop using console.log() and start using your browser’s debugger 原文作者：Parag Zaveri 译文出自：掘金翻译计划 本文永久链接：https://github.com/xitu/gold-miner/blob/master/TODO1/stopping-using-console-log-and-">
+<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2018/10/30/166c2fc22317f8eb?w=416&h=638&f=png&s=22001">
 
 
 
@@ -115,13 +131,13 @@
 
 
 
-  <link rel="canonical" href="http://Augustwuli.cn/">
+  <link rel="canonical" href="http://Augustwuli.cn/2018/10/30/18-10-30/">
 
 
 
 
 
-  <title>程序媛_小发</title>
+  <title>【译】使用浏览器调试代码 | 程序媛_小发</title>
   
 
 
@@ -140,8 +156,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-  page-home">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
@@ -244,9 +259,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -276,9 +291,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/10/30/18-10-30/" itemprop="url">【译】使用浏览器调试代码</a></h1>
+          <h1 class="post-title" itemprop="name headline">【译】使用浏览器调试代码</h1>
         
 
         <div class="post-meta">
@@ -328,9 +341,7 @@
       
 
       
-        
-          
-            <blockquote>
+        <blockquote>
 <ul>
 <li>原文地址：<a href="https://medium.com/datadriveninvestor/stopping-using-console-log-and-start-using-your-browsers-debugger-62bc893d93ff" target="_blank" rel="noopener">How to stop using console.log() and start using your browser’s debugger</a></li>
 <li>原文作者：<a href="https://medium.com/@parag.g.zaveri?source=post_header_lockup" target="_blank" rel="noopener">Parag Zaveri</a></li>
@@ -423,8 +434,6 @@
 <p><a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a> 是一个翻译优质互联网技术文章的社区，文章来源为 <a href="https://juejin.im" target="_blank" rel="noopener">掘金</a> 上的英文分享文章。内容覆盖 <a href="https://github.com/xitu/gold-miner#android" target="_blank" rel="noopener">Android</a>、<a href="https://github.com/xitu/gold-miner#ios" target="_blank" rel="noopener">iOS</a>、<a href="https://github.com/xitu/gold-miner#前端" target="_blank" rel="noopener">前端</a>、<a href="https://github.com/xitu/gold-miner#后端" target="_blank" rel="noopener">后端</a>、<a href="https://github.com/xitu/gold-miner#区块链" target="_blank" rel="noopener">区块链</a>、<a href="https://github.com/xitu/gold-miner#产品" target="_blank" rel="noopener">产品</a>、<a href="https://github.com/xitu/gold-miner#设计" target="_blank" rel="noopener">设计</a>、<a href="https://github.com/xitu/gold-miner#人工智能" target="_blank" rel="noopener">人工智能</a>等领域，想要查看更多优质译文请持续关注 <a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a>、<a href="http://weibo.com/juejinfanyi" target="_blank" rel="noopener">官方微博</a>、<a href="https://zhuanlan.zhihu.com/juejinfanyi" target="_blank" rel="noopener">知乎专栏</a>。</p>
 </blockquote>
 
-          
-        
       
     </div>
     
@@ -441,12 +450,12 @@
       
 
       
+      
+      
 
       
 
       
-      
-        <div class="post-eof"></div>
       
     </footer>
   </div>
@@ -456,10 +465,11 @@
   </article>
 
 
-    
-  </section>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -467,6 +477,10 @@
 
 
           
+
+  
+
+
 
         </div>
         
@@ -487,8 +501,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
             
@@ -548,6 +571,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Step-1：重现-Bug"><span class="nav-number">1.</span> <span class="nav-text">Step 1：重现 Bug</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Step-2：学习使用-Sources-面板"><span class="nav-number">2.</span> <span class="nav-text">Step 2：学习使用 Sources 面板</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Step-3：设置你的第一个断点"><span class="nav-number">3.</span> <span class="nav-text">Step 3：设置你的第一个断点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Step-4：跟踪你的代码"><span class="nav-number">4.</span> <span class="nav-text">Step 4：跟踪你的代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Step-5：设置代码行的断点"><span class="nav-number">5.</span> <span class="nav-text">Step 5：设置代码行的断点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Step-6：创建监测表达式"><span class="nav-number">6.</span> <span class="nav-text">Step 6：创建监测表达式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Step-7：修复你的代码"><span class="nav-number">7.</span> <span class="nav-text">Step 7：修复你的代码</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -688,6 +727,10 @@
 
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
